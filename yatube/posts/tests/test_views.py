@@ -5,7 +5,6 @@ from django import forms
 
 from ..models import Group, Post
 
-
 User = get_user_model()
 
 
@@ -14,9 +13,6 @@ class StaticURLTests(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.user = User.objects.create_user(username='auth')
-        # cls.author = User.objects.create_user(username='zhenya',
-        #                                       email='zhenyayaya121996@gmail.com',
-        #                                       password='1111')
         cls.group = Group.objects.create(
             title='Тестовая группа',
             slug='test_slag',
@@ -45,55 +41,39 @@ class StaticURLTests(TestCase):
             'posts/profile.html': reverse('posts:profile', kwargs={'username': f'{self.post.author}'}),
             'posts/post_detail.html':
                 reverse('posts:post_detail', kwargs={'post_id': f'{self.post.id}'}),
+            'posts/create_post.html': reverse('posts:post_create'),
+            # 'posts/create_post.html': reverse('posts:edit', kwargs={'post_id': self.post.id, }),
         }
 
         for template, reverse_name in templates_pages_names.items():
-            with self.subTest(reverse_name=reverse):
-                response = self.authorized_client.get(reverse)
+            with self.subTest(reverse_name=reverse_name):
+                response = self.authorized_client.get(reverse_name)
                 self.assertTemplateUsed(response, template)
-
-    def test_home_page_show_correct_context(self):
-    # """Шаблон index сформирован с правильным контекстом."""
-        response = self.authorized_client.get(reverse('posts:index'))
-        # Словарь ожидаемых типов полей формы:
-        # указываем, объектами какого класса должны быть поля формы
-        form_fields = {
-            'text': forms.fields.CharField,
-            # При создании формы поля модели типа TextField
-            # преобразуются в CharField с виджетом forms.Textarea
-            # 'pub_date': forms.fields.CharField,
-            'author': forms.fields.SlugField,
-            'group': forms.fields.ImageField,
-        }
-    # Проверяем, что типы полей формы в словаре context соответствуют ожиданиям
-        for value, expected in form_fields.items():
-            with self.subTest(value=value):
-                form_field = response.context.get('form').fields.get(value)
-                # Проверяет, что поле формы является экземпляром
-                # указанного класса
-                self.assertIsInstance(form_field, expected)
 
     def test_index_page_show_correct_context(self):
         """проверка index"""
         response = self.authorized_client.get(reverse('posts:index'))
         first_object = response.context['page_obj'][0]
-        self.assertEqual(first_object.author, 'zhenya')
+        self.assertEqual(first_object.author, self.user)
         self.assertEqual(first_object.text, 'Текст поста')
 
+    def test_group_list_pages_show_correct_context(self):
+        """Проверка group_list на правильность контекста."""
+        response = (self.authorized_client.get(reverse('posts:group_list', kwargs={'slug': f'{self.group.slug}'})))
+        self.assertEqual(response.context['group'], self.group)
 
-    def test_task_detail_pages_show_correct_context(self):
-    # """Проверка group_list на правильность контекста."""
-        response = (self.authorized_client.get(reverse('posts:group_list', kwargs={'slug': 'test-slug'})))
-        self.assertEqual(response.context.get('Group').title, 'Тестовая группа')
-        self.assertEqual(response.context.get('Group').slug, 'test_slag')
-        self.assertEqual(response.context.get('Group').description, 'Тестовое описание')
+    def test_profile_page_show_correct_context(self):
+        """Проверка group_list на правильность контекста."""
+        response = (self.authorized_client.get(reverse('posts:profile', kwargs={'username': f'{self.user.username}'})))
+        self.assertEqual(response.context['author'], self.user)
 
 
 class PaginatorViewsTest(TestCase):
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.user = User.objects.create(username='zhenya',)
+        cls.user = User.objects.create(username='auth')
         cls.group = Group.objects.create(
             title='Тестовая группа',
             slug='test_slug',
@@ -109,26 +89,14 @@ class PaginatorViewsTest(TestCase):
     def setUp(self):
         self.authorized_client = Client()
 
-    def test_paginator_on_pages(self):
         """Проверка пагинации на страницах."""
-        posts_on_first_page = 10
-        posts_on_second_page = 3
-        url_pages = [
-            reverse('posts:index'),
-            reverse('posts:group_list', kwargs={'slug': 'test-slug'}),
-            reverse('posts:profile', kwargs={'username': f'{self.user.username}'}),
-        ]
-        for reverse_name in url_pages:
-            with self.subTest(reverse_nname=reverse_name):
-                response = self.client.get(reverse('reverse_name'))
-                self.assertEqual(len(response.context['page_obj']), posts_on_first_page)
-                # self.assertEqual(len(self.authorized_client.get(
-                #     reverse_).context.get('page_obj')),
-                #     posts_on_first_page
-                # )
-                response = self.client.get(reverse('url') + '?page=2')
-                self.assertEqual(len(response.context['page_obj']), posts_on_second_page)
-                # self.assertEqual(len(self.authorized_client.get(
-                #     reverse_ + '?page=2').context.get('page_obj')),
-                #     posts_on_second_page
-                # )
+
+    def test_first_page_contains_ten_records(self):
+        response = self.client.get(reverse('posts:profile', kwargs={'username': self.user.username}))
+        # Проверка: количество постов на первой странице равно 10.
+        self.assertEqual(len(response.context['page_obj']), 10)
+
+    def test_second_page_contains_three_records(self):
+        """Проверка: на второй странице должно быть три поста."""
+        response = self.client.get(reverse('posts:group_list', kwargs={'slug': 'test_slug'}) + '?page=2')
+        self.assertEqual(len(response.context['page_obj']), 3)

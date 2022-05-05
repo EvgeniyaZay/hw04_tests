@@ -29,7 +29,6 @@ class StaticURLTests(TestCase):
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
 
-
     def test_urls_for_authorized_exists(self):
         """Страница для авторизованных пользователей."""
         urls = (

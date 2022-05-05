@@ -7,7 +7,6 @@ from django.urls import reverse
 from ..forms import PostForm
 from ..models import Group, Post
 
-
 User = get_user_model()
 
 
@@ -34,7 +33,7 @@ class PostModelTest(TestCase):
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
 
-    def  test_authorized_user_create_post(self):
+    def test_authorized_user_create_post(self):
         # проверка создания записи
         posts_count = Post.objects.count()
         form_data = {
@@ -67,7 +66,7 @@ class PostModelTest(TestCase):
         self.assertEqual(self.post.group_id, form_data['group'])
 
     def test_authorized_user_post_edit(self):
-            # проверка редактирования записи
+        # проверка редактирования записи
         post = Post.objects.create(
             author=self.user,
             text='Текст поста',
@@ -94,5 +93,3 @@ class PostModelTest(TestCase):
         self.assertEqual(self.post.text, form_data['text'])
         self.assertEqual(self.post.author, self.user)
         self.assertEqual(self.post.group_id, form_data['group'])
-
-

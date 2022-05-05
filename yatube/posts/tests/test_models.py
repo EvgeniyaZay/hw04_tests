@@ -21,13 +21,11 @@ class PostModelTest(TestCase):
             text='Тестовая пост',
         )
 
-
     def test_models_have_correct_object_names(self):
         """Проверяем, что у моделей корректно работает __str__."""
         post = PostModelTest.post
         symbols = post.text[:15]
         self.assertEqual(post.text[:15], symbols)
-
 
     def test_verbose_name(self):
         post = PostModelTest.post
