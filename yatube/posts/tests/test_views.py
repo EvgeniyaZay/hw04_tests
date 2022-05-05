@@ -1,7 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 from django.urls import reverse
-from django import forms
 
 from ..models import Group, Post
 
@@ -37,16 +36,18 @@ class StaticURLTests(TestCase):
         templates_pages_names = {
             'posts/index.html': reverse('posts:index'),
             'posts/group_list.html':
-                reverse('posts:group_list', kwargs={'slug': f'{self.group.slug}'}
+                reverse('posts:group_list',
+                        kwargs={'slug': f'{self.group.slug}'}
                         ),
             'posts/profile.html':
-                reverse('posts:profile', kwargs={'username': f'{self.post.author}'}
+                reverse('posts:profile',
+                        kwargs={'username': f'{self.post.author}'}
                         ),
             'posts/post_detail.html':
-                reverse('posts:post_detail', kwargs={'post_id': f'{self.post.id}'}
+                reverse('posts:post_detail',
+                        kwargs={'post_id': f'{self.post.id}'}
                         ),
             'posts/create_post.html': reverse('posts:post_create'),
-            # 'posts/create_post.html': reverse('posts:edit', kwargs={'post_id': self.post.id, }),
         }
 
         for template, reverse_name in templates_pages_names.items():
@@ -64,15 +65,17 @@ class StaticURLTests(TestCase):
     def test_group_list_pages_show_correct_context(self):
         """Проверка group_list на правильность контекста."""
         response = (self.authorized_client.get(
-            reverse('posts:group_list', kwargs={'slug': f'{self.group.slug}'}))
-        )
+            reverse('posts:group_list',
+                    kwargs={'slug': f'{self.group.slug}'}))
+                    )
         self.assertEqual(response.context['group'], self.group)
 
     def test_profile_page_show_correct_context(self):
         """Проверка group_list на правильность контекста."""
         response = (self.authorized_client.get(
-            reverse('posts:profile', kwargs={'username': f'{self.user.username}'}))
-        )
+            reverse('posts:profile',
+                    kwargs={'username': f'{self.user.username}'}))
+                    )
         self.assertEqual(response.context['author'], self.user)
 
 
