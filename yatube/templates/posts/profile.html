@@ -19,7 +19,7 @@
                     <p>
                         {{ post.text}}
                     </p>
-                    <a href="{% url 'posts:post_detail' username=author.username post_id=post.id%}">подробная информация </a>
+                    <a href="{% url 'posts:post_detail' post.pk%}">подробная информация </a>
                     {% if post.group %}
                         <a href="{% url 'posts:group_list' post.group.slug %}">
                             {{ post.group }}

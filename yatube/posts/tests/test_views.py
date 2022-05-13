@@ -5,7 +5,6 @@ from django.urls import reverse
 from django import forms
 
 from ..models import Group, Post
-# from yatube.yatube.settings import MAX_PAGE_AMOUNT
 
 
 User = get_user_model()
@@ -95,7 +94,7 @@ class StaticURLTests(TestCase):
         """Проверка post_detail на правильность контекста /<username>/<post_id>/edit/"""
         response = (self.authorized_client.get(
             reverse('posts:post_detail',
-                    kwargs={'username': f'{self.user.username}', 'post_id':  f'{self.post.id}'}))
+                    kwargs={'post_id':  f'{self.post.id}'}))
         )
         # self.assertEqual(response.context['author'], self.user)
         # self.assertEqual(response.context.get('post').author.username,
@@ -146,7 +145,7 @@ class PaginatorViewsTest(TestCase):
         """Проверка: количество постов на первой странице равно 10."""
         response = self.authorized_client.get(reverse('posts:index'))
         list_test = response.context['page_obj']
-        self.assertEqual(len(list_test), POST_ON_FIRST_PAGE)
+        self.assertEqual(list_test.count(), POST_ON_FIRST_PAGE)  # <---@TODO ДЕЛАЙ ВОТ ТАК. НЕ НАДО ИСПОЛЬЗОВАТЬ LEN
 
         """Проверка: на второй странице должно быть три поста."""
         response = self.client.get(reverse('posts:index') + '?page=2')
