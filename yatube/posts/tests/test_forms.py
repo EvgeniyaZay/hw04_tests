@@ -20,21 +20,15 @@ class PostModelTest(TestCase):
             description='Тестовое описание',
         )
         cls.user = User.objects.create_user(username='auth')
-        cls.post = Post.objects.create(
-            author=cls.user,
-            text='Текст поста',
-            group=cls.group
-        )
-        cls.form = PostForm()
+        # cls.form = PostForm()
 
     def setUp(self):
-        # Создаем неавторизованный клиент
         self.guest_user = Client()
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
 
     def test_authorized_user_create_post(self):
-        # проверка создания записи
+        """проверка создания записи авторизованным пользователем"""
         posts_count = Post.objects.count()
         form_data = {
             'text': 'Текст поста',
@@ -53,20 +47,20 @@ class PostModelTest(TestCase):
             )
         )
         self.assertEqual(Post.objects.count(), posts_count + 1)
-        # self.assertTrue(
-        #     Post.objects.filter(
-        #         author=self.user,
-        #         text=self.post.text,
-        #         group=self.group.title
-        #     ).exists()
-        # )
-
-        self.assertEqual(self.post.text, form_data['text'])
-        self.assertEqual(self.post.author, self.user)
-        self.assertEqual(self.post.group_id, form_data['group'])
+        self.assertTrue(
+            Post.objects.filter(
+                author=self.user,
+                text='Текст поста',
+                group=self.group.id
+            ).exists()
+        )
+        # self.assertEqual(response.status_code, 200)
+        # self.assertEqual(self.post.text)
+        # self.assertEqual(self.post.author, self.user)
+        # self.assertEqual(self.post.group_id, self.group.title)
 
     def test_authorized_user_post_edit(self):
-        # проверка редактирования записи
+        """проверка редактирования записи авторизованным клиентом"""
         post = Post.objects.create(
             author=self.user,
             text='Текст поста',
@@ -89,7 +83,26 @@ class PostModelTest(TestCase):
             )
         )
         self.assertEqual(response.status_code, HTTPStatus.OK)
-        post = Post.objects.latest('id')
-        self.assertEqual(self.post.text, form_data['text'])
-        self.assertEqual(self.post.author, self.user)
-        self.assertEqual(self.post.group_id, form_data['group'])
+        # post = Post.objects.latest('id')
+        # self.assertEqual(self.post.text, form_data['text'])
+        # self.assertEqual(self.post.author, self.user)
+        # self.assertEqual(self.post.group_id, form_data['group'])
+
+    def test_guest_user_create_post(self):
+        """проверка создания записи неавторизованным пользователем"""
+        posts_count = Post.objects.count()
+        form_data = {
+            'text': 'Текст поста',
+            'group': self.group.id,
+        }
+        response = self.guest_user.post(
+            reverse('posts:post_create'),
+            data=form_data,
+            follow=True
+        )
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertRedirects(
+            response,
+            f'{reverse("users:login")}?next={reverse("posts:post_create")}'
+        )
+        self.assertEqual(Post.objects.count(), posts_count)

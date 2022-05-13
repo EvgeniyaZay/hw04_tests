@@ -2,6 +2,7 @@ from http import HTTPStatus
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
+from django.urls import reverse
 
 from ..models import Post, Group
 
@@ -25,14 +26,22 @@ class StaticURLTests(TestCase):
 
     def setUp(self):
         self.guest_client = Client()
-        self.user = User.objects.create_user(username='zhenya')
+        # self.user = User.objects.create_user(username='auth')
+        self.user = self.post.author
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
+        self.authorized_client_author = Client()
+        self.authorized_client_author.force_login(self.user)
+
 
     def test_urls_for_authorized_exists(self):
         """Страница для авторизованных пользователей."""
         urls = (
+            '/',
+            f'/group/test_slag/',
+            f'/profile/{self.user}/',
             '/create/',
+            f'/posts/{self.post.id}/'
         )
         for url in urls:
             with self.subTest():
@@ -41,9 +50,29 @@ class StaticURLTests(TestCase):
 
     def test_edit_url_for_author_exists(self):
         """Cтраница редактирования для автора поста post_detail"""
-        urls = f'/posts/{self.post.id}/edit/'
-        response = self.authorized_client.get(urls)
-        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+        urls = (
+            '/create/',
+            f'/posts/{self.post.id}/'
+        )
+        for url in urls:
+            with self.subTest():
+                response = self.authorized_client_author.get(url)
+                self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_urls_for_guest_client_exists(self):
+        """Страница для неавторизованных пользователей."""
+        urls = (
+            '/',
+            f'/group/{self.group.slug}/',
+            f'/profile/{self.user}/',
+            f'/posts/{self.post.id}/',
+            '/create/',
+            f'/posts/{self.post.id}/'
+        )
+        for url in urls:
+            with self.subTest():
+                response = self.guest_client.get(url, follow=True)
+                self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_urls_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""

@@ -42,9 +42,11 @@ def profile(request, username):
 
 def post_detail(request, post_id):
     template = "posts/post_detail.html"
+    author = get_object_or_404(User)
     post = get_object_or_404(Post, id=post_id)
     context = {
-        "post": post,
+        'author': author,
+        'post': post,
     }
     return render(request, template, context)
 
