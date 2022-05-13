@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 from django.urls import reverse
+from django import forms
 
 from ..models import Group, Post
 # from yatube.yatube.settings import MAX_PAGE_AMOUNT
@@ -41,10 +42,10 @@ class StaticURLTests(TestCase):
                 reverse('posts:group_list',
                         kwargs={'slug': f'{self.group.slug}'}
                         ),
-            # 'posts/profile.html':
-            #     reverse('posts:profile',
-            #             kwargs={'username': f'{self.post.author}'}
-            #             ),
+            'posts/profile.html':
+                reverse('posts:profile',
+                        kwargs={'username': f'{self.post.author}'}
+                        ),
             # 'posts/post_detail.html':
             #     reverse('posts:post_detail',
             #             kwargs={'post_id': f'{self.post.id}'}
@@ -94,13 +95,26 @@ class StaticURLTests(TestCase):
         """Проверка post_detail на правильность контекста /<username>/<post_id>/edit/"""
         response = (self.authorized_client.get(
             reverse('posts:post_detail',
-                    kwargs={'post_id': f'{self.post.id}'}))
+                    kwargs={'username': f'{self.user.username}', 'post_id':  f'{self.post.id}'}))
         )
-        self.assertEqual(response.context.get('post').author.username,
-                         f'{self.post.author}')
-        self.assertEqual(response.context.get('post').text, 'Текст поста')
-        self.assertEqual(response.context.get('post').group.title,
-                         f'{self.group}')
+        # self.assertEqual(response.context['author'], self.user)
+        # self.assertEqual(response.context.get('post').author.username,
+        #                  f'{self.post.author}')
+        # self.assertEqual(response.context.get('post').text, 'Текст поста')
+        # self.assertEqual(response.context.get('post').group.title,
+        #                  f'{self.group}')
+
+    # def test_post_detail_page_show_correct_context(self):
+    #     """Проверка create_post на правильность контекста"""
+    #     response = self.authorized_client.get(reverse('posts:post_create',))
+    #     form_fields = {
+    #                'group': forms.fields.CharField,
+    #                'text': forms.fields.CharField,
+    #            }
+    #     for value, expected in form_fields.items():
+    #         with self.subTest(value=value):
+    #             form_fields = response.context['form'].fields[value]
+    #             self.assertIsInstance(form_fields, expected)
 
 
 class PaginatorViewsTest(TestCase):
