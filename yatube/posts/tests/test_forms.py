@@ -106,3 +106,4 @@ class PostModelTest(TestCase):
             f'{reverse("users:login")}?next={reverse("posts:post_create")}'
         )
         self.assertEqual(Post.objects.count(), posts_count)
+
