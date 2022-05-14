@@ -2,7 +2,6 @@ from http import HTTPStatus
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
-from django.urls import reverse
 
 from ..models import Post, Group
 
@@ -37,7 +36,7 @@ class StaticURLTests(TestCase):
         """Страница для авторизованных пользователей."""
         urls = (
             '/',
-            f'/group/test_slag/',
+            '/group/test_slag/',
             f'/profile/{self.user}/',
             '/create/',
             f'/posts/{self.post.id}/'

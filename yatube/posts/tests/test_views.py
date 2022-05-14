@@ -68,11 +68,13 @@ class StaticURLTests(TestCase):
         response = (self.authorized_client.get(
             reverse('posts:group_list',
                     kwargs={'slug': f'{self.group.slug}'}))
-        )
+                    )
         first_object = response.context['page_obj'][0]
         self.assertEqual(first_object.group.title, self.group.title)
         self.assertEqual(first_object.group.slug, self.group.slug)
-        self.assertEqual(first_object.group.description, self.group.description)
+        self.assertEqual(first_object.group.description,
+                         self.group.description
+                         )
 
     def test_profile_page_show_correct_context(self):
         """Проверка profile на правильность контекста."""
@@ -81,19 +83,18 @@ class StaticURLTests(TestCase):
             reverse('posts:profile',
 
                     kwargs={'username': f'{self.post.author}'}))
-
-        )
+                    )
         first_object = response.context['page_obj'][0]
         self.assertEqual(first_object.text, self.post.text)
         self.assertEqual(first_object.author, self.user)
         self.assertEqual(first_object.group, self.post.group)
 
     def test_post_detail_page_show_correct_context(self):
-        """Проверка post_detail на правильность контекста /<username>/<post_id>/edit/"""
+        """Проверка post_detail на правильность контекста"""
         response = (self.authorized_client.get(
             reverse('posts:post_detail',
                     kwargs={'post_id': f'{self.post.id}'}))
-        )
+                    )
         self.assertEqual(response.context['author'], self.user)
         self.assertEqual(response.context.get('post').author.username,
                          f'{self.post.author}')
