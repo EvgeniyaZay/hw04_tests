@@ -42,10 +42,6 @@ class StaticURLTests(TestCase):
                 reverse('posts:profile',
                         kwargs={'username': f'{self.post.author}'}
                         ),
-            # 'posts/post_detail.html':
-            #     reverse('posts:post_detail',
-            #             kwargs={'post_id': f'{self.post.id}'}
-            #             ),
             'posts/create_post.html': reverse('posts:post_create'),
         }
 
