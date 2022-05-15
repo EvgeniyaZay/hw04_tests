@@ -20,7 +20,7 @@ class PostModelTest(TestCase):
         """Проверяем, что у моделей Post корректно работает __str__."""
         post = PostModelTest.post
         symbols = post.text[:15]
-        self.assertEqual(post.text[:15], symbols)
+        self.assertEqual(symbols, str(post))
 
     def test_verbose_name(self):
         """verbose_name в полях совпадает с ожидаемым."""

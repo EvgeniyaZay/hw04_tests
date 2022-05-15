@@ -22,26 +22,25 @@ class StaticURLTests(TestCase):
             author=cls.user,
             text='Тестовый пост',
         )
+        cls.urls = (
+            '/',
+            '/group/test_slag/',
+            f'/profile/{cls.user}/',
+            '/create/',
+            f'/posts/{cls.post.id}/'
+        )
+
 
     def setUp(self):
         self.guest_client = Client()
-        # self.user = User.objects.create_user(username='auth')
-        self.user = self.post.author
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
         self.authorized_client_author = Client()
         self.authorized_client_author.force_login(self.user)
 
     def test_urls_for_authorized_exists(self):
-        """Страница для авторизованных пользователей."""
-        urls = (
-            '/',
-            '/group/test_slag/',
-            f'/profile/{self.user}/',
-            '/create/',
-            f'/posts/{self.post.id}/'
-        )
-        for url in urls:
+        """Доступность url адресов для авторизованных пользователей."""
+        for url in self.urls:
             with self.subTest():
                 response = self.authorized_client.get(url)
                 self.assertEqual(response.status_code, HTTPStatus.OK)
@@ -59,15 +58,7 @@ class StaticURLTests(TestCase):
 
     def test_urls_for_guest_client_exists(self):
         """Страница для неавторизованных пользователей."""
-        urls = (
-            '/',
-            f'/group/{self.group.slug}/',
-            f'/profile/{self.user}/',
-            f'/posts/{self.post.id}/',
-            '/create/',
-            f'/posts/{self.post.id}/'
-        )
-        for url in urls:
+        for url in self.urls:
             with self.subTest():
                 response = self.guest_client.get(url, follow=True)
                 self.assertEqual(response.status_code, HTTPStatus.OK)

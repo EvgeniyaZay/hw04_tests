@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 from django.urls import reverse
@@ -26,13 +27,11 @@ class StaticURLTests(TestCase):
         )
 
     def setUp(self):
-        # self.guest_client = Client()
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
 
     def test_pages_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
-        # Собираем в словарь пары "имя_html_шаблона: reverse(name)"
         templates_pages_names = {
             'posts/index.html': reverse('posts:index'),
             'posts/group_list.html':
@@ -102,18 +101,6 @@ class StaticURLTests(TestCase):
         self.assertEqual(response.context.get('post').group.title,
                          f'{self.group}')
 
-    # def test_post_detail_page_show_correct_context(self):
-    #     """Проверка create_post на правильность контекста"""
-    #     response = self.authorized_client.get(reverse('posts:post_create',))
-    #     form_fields = {
-    #                'group': forms.fields.CharField,
-    #                'text': forms.fields.CharField,
-    #            }
-    #     for value, expected in form_fields.items():
-    #         with self.subTest(value=value):
-    #             form_fields = response.context['form'].fields[value]
-    #             self.assertIsInstance(form_fields, expected)
-
 
 class PaginatorViewsTest(TestCase):
 
@@ -136,22 +123,22 @@ class PaginatorViewsTest(TestCase):
     def setUp(self):
         self.authorized_client = Client()
 
-    def test_first_page_contains_ten_records(self):
-        # POST_ON_FIRST_PAGE = settings.MAX_PAGE_AMOUNT
-        # POST_ON_ALL_PAGE = 13 - POST_ON_FIRST_PAGE
+    def test_paginator_pages(self):
+        POST_ON_FIRST_PAGE = settings.MAX_PAGE_AMOUNT
+        POST_ON_ALL_PAGE = 13 - POST_ON_FIRST_PAGE
 
         """Проверка: количество постов на первой странице равно 10."""
         response = self.authorized_client.get(reverse('posts:index'))
         list_test = response.context['page_obj']
         list_test.paginator.count
-        # print(list_test.paginator.count)
+        self.assertEqual(POST_ON_FIRST_PAGE, len(list_test))
+
         """Проверка: на второй странице должно быть три поста."""
         response = self.client.get(reverse('posts:index') + '?page=2')
         list_test = response.context['page_obj']
         list_test.paginator.count
-        # print(list_test.paginator.count)
+        self.assertEqual(POST_ON_ALL_PAGE, len(list_test))
 
-    def test_paginator_pages(self):
         """проверка пагинации на страницах"""
         list_pages = [
             reverse('posts:index'),
@@ -164,4 +151,4 @@ class PaginatorViewsTest(TestCase):
                 response = self.authorized_client.get(lists)
                 list_test = response.context['page_obj']
                 list_test.paginator.count
-                # print(list_test.paginator.count)
+                self.assertEqual(POST_ON_FIRST_PAGE, len(list_test))

@@ -19,7 +19,6 @@ class PostModelTest(TestCase):
             description='Тестовое описание',
         )
         cls.user = User.objects.create_user(username='auth')
-        # cls.form = PostForm()
 
     def setUp(self):
         self.guest_user = Client()
@@ -53,10 +52,6 @@ class PostModelTest(TestCase):
                 group=self.group.id
             ).exists()
         )
-        # self.assertEqual(response.status_code, 200)
-        # self.assertEqual(self.post.text)
-        # self.assertEqual(self.post.author, self.user)
-        # self.assertEqual(self.post.group_id, self.group.title)
 
     def test_authorized_user_post_edit(self):
         """проверка редактирования записи авторизованным клиентом"""
@@ -82,10 +77,10 @@ class PostModelTest(TestCase):
             )
         )
         self.assertEqual(response.status_code, HTTPStatus.OK)
-        # post = Post.objects.latest('id')
-        # self.assertEqual(self.post.text, form_data['text'])
-        # self.assertEqual(self.post.author, self.user)
-        # self.assertEqual(self.post.group_id, form_data['group'])
+        post = Post.objects.latest('id')
+        self.assertTrue(post.text == form_data['text'])
+        self.assertTrue(post.author == self.user)
+        self.assertTrue(post.group_id == form_data['group'])
 
     def test_guest_user_create_post(self):
         """проверка создания записи неавторизованным пользователем"""
