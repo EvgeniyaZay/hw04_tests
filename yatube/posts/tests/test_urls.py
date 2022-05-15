@@ -30,7 +30,6 @@ class StaticURLTests(TestCase):
             f'/posts/{cls.post.id}/'
         )
 
-
     def setUp(self):
         self.guest_client = Client()
         self.authorized_client = Client()
