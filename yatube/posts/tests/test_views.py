@@ -1,5 +1,10 @@
+import shutil
+import tempfile
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, Client
 from django.urls import reverse
 
@@ -19,12 +24,31 @@ class StaticURLTests(TestCase):
             slug='test_slag',
             description='Тестовое описание'
         )
+        small_gif = (
+            b'\x47\x49\x46\x38\x39\x61\x02\x00'
+            b'\x01\x00\x80\x00\x00\x00\x00\x00'
+            b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
+            b'\x00\x00\x00\x2C\x00\x00\x00\x00'
+            b'\x02\x00\x01\x00\x00\x02\x02\x0C'
+            b'\x0A\x00\x3B'
+        )
+        uploaded = SimpleUploadedFile(
+            name='small.gif',
+            content=small_gif,
+            content_type='image/gif'
+        )
         cls.post = Post.objects.create(
             text='Текст поста',
             author=cls.user,
             group=cls.group,
-
+            image=uploaded,
         )
+        # settings.MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shutil.rmtree(settings.MEDIA_ROOT, ignore_errors=True)
 
     def setUp(self):
         self.authorized_client = Client()
@@ -57,6 +81,7 @@ class StaticURLTests(TestCase):
         self.assertEqual(first_object.text, self.post.text)
         self.assertEqual(first_object.author, self.user)
         self.assertEqual(first_object.group, self.post.group)
+        self.assertEqual(first_object.image, self.post.image)
 
     def test_group_list_pages_show_correct_context(self):
         """Проверка group_list на правильность контекста."""
@@ -70,6 +95,7 @@ class StaticURLTests(TestCase):
         self.assertEqual(first_object.group.description,
                          self.group.description
                          )
+        self.assertEqual(first_object.image, self.post.image)
 
     def test_profile_page_show_correct_context(self):
         """Проверка profile на правильность контекста."""
@@ -83,6 +109,7 @@ class StaticURLTests(TestCase):
         self.assertEqual(first_object.text, self.post.text)
         self.assertEqual(first_object.author, self.user)
         self.assertEqual(first_object.group, self.post.group)
+        self.assertEqual(first_object.image, self.post.image)
 
     def test_post_detail_page_show_correct_context(self):
         """Проверка post_detail на правильность контекста"""
@@ -90,12 +117,13 @@ class StaticURLTests(TestCase):
             reverse('posts:post_detail',
                     kwargs={'post_id': f'{self.post.id}'}))
                     )
-        self.assertEqual(response.context['author'], self.user)
+        # self.assertEqual(response.context['author'], self.user)
         self.assertEqual(response.context.get('post').author.username,
                          f'{self.post.author}')
         self.assertEqual(response.context.get('post').text, 'Текст поста')
         self.assertEqual(response.context.get('post').group.title,
                          f'{self.group}')
+        self.assertEqual(response.context.get('post').image, f'{self.post.image}')
 
 
 class PaginatorViewsTest(TestCase):
@@ -148,3 +176,8 @@ class PaginatorViewsTest(TestCase):
                 list_test = response.context['page_obj']
                 list_test.paginator.count
                 self.assertEqual(POST_ON_FIRST_PAGE, len(list_test))
+
+    def test_cache(self):
+      # """Тестирование кэширования главной страницы"""
+      #   def response_page():
+        pass
